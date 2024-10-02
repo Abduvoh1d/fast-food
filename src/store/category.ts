@@ -1,39 +1,34 @@
-import {ICategory} from "@src/interface/interface";
-import {makeAutoObservable, runInAction} from "mobx";
+import { ICategory } from "@src/interface/interface";
+import { makeAutoObservable, runInAction } from "mobx";
 import api from "@api/api";
 
-class category {
-    category: ICategory[] | null = localStorage.getItem("category") ? JSON.parse(localStorage.getItem("category")!) : null
-    error: string | null = null
-    isLoading: boolean = false
+class Category {
+    category: ICategory[] | null = null;
+    error: string | null = null;
+    isLoading: boolean = false;
+    isAuthenticated: boolean = false;
 
     constructor() {
         makeAutoObservable(this);
     }
 
     async getCategories() {
-        runInAction(() => {
-            this.isLoading = true
-        })
+        this.isLoading = true;
         try {
-            const response = await api.get('category')
-            localStorage.setItem('category', JSON.stringify(response.data))
+            const response = await api.get("category/all");
             runInAction(() => {
-                this.category = response.data
-            })
-        } catch (e) {
+                this.category = response.data;
+            });
+        } catch (error: any) {
             runInAction(() => {
-                this.error = `${e}`;
-                this.isLoading = false
-            })
-        }finally {
+                this.error = error.message;
+            });
+        } finally {
             runInAction(() => {
-                this.isLoading = false
+                this.isLoading = false;
             })
         }
     }
-
 }
 
-const Category = new category()
-export default Category
+export default new Category();

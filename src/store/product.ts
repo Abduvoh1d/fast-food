@@ -1,42 +1,61 @@
-import {IProduct} from "@src/interface/interface";
+import {IGetProductByCategory, IProduct} from "@src/interface/interface";
 import {makeAutoObservable, runInAction} from "mobx";
-import api from "@src/api/api";
+import api from "@api/api";
+import {AxiosResponse} from "axios";
 
-class product {
-    product: IProduct[] | null = null;
+class Product {
+    productByCategory: IGetProductByCategory[] | null = null;
+    oneProduct: IProduct | null = null;
+    isLoading: boolean = false;
     error: string | null = null;
-    isLoading: boolean | null = null;
 
     constructor() {
         makeAutoObservable(this);
     }
 
-    async getProducts() {
-        runInAction(() => {
-            this.isLoading = true
+    async getProducts(categoryId: number = 1): Promise<void> {
+        this.isLoading = true;
+        try {
+            const response: AxiosResponse<IGetProductByCategory[]> = await api.get(`category/get/${categoryId}`);
+
+            runInAction((): void => {
+                this.productByCategory = response.data;
+            });
+        } catch (error: any) {
+            runInAction(() => {
+                this.error = error.message || "An error occurred while fetching products.";
+            });
+        } finally {
+            // Ensure loading state is reset after the request finishes
+            runInAction(() => {
+                this.isLoading = false;
+            });
+        }
+    }
+
+    async getOneProduct(categoryId: number): Promise<void> {
+        runInAction((): void => {
+            this.isLoading = true;
         })
 
         try {
-            const response: IProduct = await api.get('product/1')
-            console.log(response)
-            runInAction(() => {
-                // this.product = response.data
+            const response: AxiosResponse<IProduct> = await api.get(`/category/product/${categoryId}`);
+
+            runInAction((): void => {
+                this.oneProduct = response.data;
             })
-        } catch (e: unknown) {
-            runInAction(() => {
-                if (e instanceof Error) {
-                    this.error = e.message;
-                } else {
-                    this.error = String(e);
-                }
-            })
+        } catch (error: any) {
+            runInAction((): void => {
+                this.error = error.message || "An error occurred while fetching products.";
+            });
         } finally {
             runInAction(() => {
-                this.isLoading = false
-            })
+                this.isLoading = false;
+            });
         }
     }
+
+
 }
 
-const Product = new product();
-export default Product;
+export default new Product();

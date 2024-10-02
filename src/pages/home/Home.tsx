@@ -6,219 +6,271 @@ import {observer} from "mobx-react-lite";
 import {toJS} from "mobx";
 import Product from "@src/store/product";
 import Loading from "@src/components/Loading";
-import {Button, Col, Modal, Row} from "antd";
+import {Button, Col, Form, FormProps, Input, Modal, Row} from "antd";
 import {priceFormatter} from "@src/utils/util";
-import {ICategory, IProduct} from "@src/interface/interface";
+import {HiMiniPlus} from "react-icons/hi2";
+import {HiOutlineMinusSm} from "react-icons/hi";
+import {ICategory, IGetProductByCategory, IOrderItemDTO} from "@src/interface/interface";
+import BasketStore from "@src/store/basket";
+import Basket from "@src/store/basket";
+import basket from "@src/store/basket";
+import {useNavigate} from "react-router-dom";
+import Auth from "@src/store/auth";
+
+type modalForm = {
+    username: string;
+    phoneNumber: number;
+};
 
 const Home = observer(() => {
-    const products: IProduct[] | null= toJS(Product.product);
-    const categories: ICategory[] | null = toJS(Category.category);
-    const [category, setCategory] = useState<ICategory | null>(categories ? categories[0] : null );
-    const [basketPrice, setBasketPrice] = useState<number>(0);
+    const [category, setCategory] = useState<ICategory | null>();
+    useEffect(() => {
+        const fetchData = async () => {
+            await Product.getProducts(category?.id && category.id);
+        };
+        fetchData().then();
+    }, [category?.id]);
+
+    const categories: ICategory[] = toJS(Category.category) || [];
+    const navigate = useNavigate();
+    const products: IGetProductByCategory[] = toJS(Product.productByCategory) || [];
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
-    // const [counter, setCounter] = useState<number>(0);
+    const [isZakazMadalOpen, setIsZakazMadalOpen] = useState(false);
 
     useEffect(() => {
-        const fetchCategories = async () => {
+        const fetchData = async () => {
             await Category.getCategories();
+            await BasketStore.getBaket()
         };
-
-        const fetchProducts = async () => {
-            await Product.getProducts();
-        };
-
-        fetchCategories();
-        fetchProducts();
+        fetchData().then();
     }, []);
 
-    useEffect(() => {
-        const totalPrice = products ? products.reduce((total, item) => total + item.price, 0) : 0;
-        setBasketPrice(totalPrice);
-    }, [products]);
 
-    if (toJS(Product.isLoading) || toJS(Category.isLoading)) {
+    if (Product.isLoading || Category.isLoading || Basket.isLoading) {
         return <Loading/>;
     }
 
-    const showModal = (product: any) => {
-        setSelectedProduct(product);
+    if (Product.error || Category.error) {
+        return <div className="text-red-500">Error: {Product.error || Category.error}</div>;
+    }
+
+    const showModal = (id: number) => {
+        Product.getOneProduct(id).then();
         setIsModalOpen(true);
     };
 
     const handleCancel = () => {
         setIsModalOpen(false);
+        Product.oneProduct = null;
+    };
+
+    const showZakazModal = () => {
+        setIsZakazMadalOpen(true);
+    };
+
+    const cancelZakazModal = () => {
+        setIsZakazMadalOpen(false);
+    };
+
+
+    async function plus(productId: number): Promise<void> {
+        await Basket.plus(productId)
+        await BasketStore.getBaket()
+    }
+
+    async function minus(productId: number): Promise<void> {
+        await Basket.minus(productId)
+        await BasketStore.getBaket()
+    }
+
+    async function addOnBasket(id: number): Promise<void> {
+        Auth.checkLogin(navigate)
+        await Basket.addBasket(id)
+        await BasketStore.getBaket()
+        setIsModalOpen(false);
+    }
+
+    const onFinish: FormProps<modalForm>['onFinish'] = (values) => {
+        console.log('Success:', values);
     };
 
     return (
-        <div className="bg-[#F9F9F9]">
+        <div className="bg-[#F9F9F9] min-h-screen">
             <Header/>
-            <div
-                className="mx-5 mt-10 pb-2 flex gap-3"
-                style={{
-                    overflowX: "auto",
-                    whiteSpace: "nowrap",
-                }}
-            >
-                {categories?.map((item: ICategory, index: number) => (
+            <div className="mx-5 mt-10 pb-2 flex gap-3" style={{overflowX: "auto", whiteSpace: "nowrap"}}>
+                {categories.map((item: ICategory) => (
                     <div
-                        key={index}
+                        key={item.id}
                         onClick={() => setCategory(item)}
-                        className={`${item.name === category?.name ? 'bg-[#FFAB08] text-white' : 'bg-white'} flex items-center justify-center px-8 py-3 gap-3`}
-                        style={{
-                            borderRadius: '14px',
-                            cursor: 'pointer',
-                        }}
+                        className={`flex items-center justify-center px-8 py-3 gap-3 rounded-full cursor-pointer transition-all duration-300 ${
+                            item.name === category?.name ? 'bg-[#FFAB08] text-white' : 'bg-white text-gray-700 hover:bg-gray-100'
+                        }`}
                     >
-                        <img src={item.path} alt="" width={'20px'}/>
+                        <img src={item.path} alt={item.name} width={'20px'}/>
                         <p>{item.name}</p>
                     </div>
                 ))}
             </div>
 
             <section className="max-w-[1200px] m-auto flex gap-3 my-[30px]">
-                <Row gutter={16}>
-                    <Col sm={8} className={'!px-3'}>
-                        <div className={'bg-white rounded-2xl max-h-[500px] overflow-y-auto px-3 py-5'}>
-                            <div className={'flex justify-between items-center'}>
-                                <p className={'text-[24px] font-[600]'}>Корзина</p>
-                                <p className={'px-6 py-1 bg-[#F2F2F3] rounded-xl font-[400]'}>{products ? products.length : 0}</p>
+                <Row gutter={16} className={'w-[100%]'}>
+                    <Col sm={8} className="!px-3">
+                        <div style={{fontFamily: "Roboto"}}
+                             className="rounded-2xl max-h-[500px] w-[100%] overflow-y-auto px-3 py-5 shadow-lg">
+                            <div className="flex justify-between items-center">
+                                <p className="text-[24px] font-[600]">Корзина</p>
+                                <p className="px-6 py-1 bg-[#F2F2F3] rounded-xl font-[400]">{basket.totalProducts}</p>
                             </div>
-                            <hr className={'my-3'}/>
-                            {products ? (
-                                <>
-                                    {products.map((item) => (
-                                        <div key={item.id}
-                                             className={'p-4 bg-white rounded-2xl flex items-center justify-between'}>
-                                            <div className={'flex items-center justify-start'}>
-                                                <img
-                                                    src={item.name}
-                                                    alt=""
-                                                    className={'w-[65px] h-[55px] bg-cover bg-center object-cover rounded-xl'}
-                                                />
-                                                <div className={'flex flex-col ml-3'}>
-                                                    <p className={'text-[18px]'}>{item.name}</p>
-                                                    <p className={'font-medium text-[13px] text-gray-400'}>{item.compound.weight} г</p>
-                                                    <p className={'font-medium text-[13px]'}>{priceFormatter(item.price)} €</p>
+                            <hr className="my-3"/>
+                            {basket.basket && basket.basket.length > 0 ? (
+                                <div className="w-[100%]">
+                                    {Basket.basket?.map((item: IOrderItemDTO) => (
+                                        <>
+                                            <div key={item.id}
+                                                 className="p-4 rounded-2xl flex items-center justify-between">
+                                                <div className="flex items-center w-[250px]">
+                                                    <img src={item.imagePath} alt={item.productName}
+                                                         className="w-[70px] h-[70px] bg-cover bg-center object-cover rounded-xl"/>
+                                                    <div className="flex flex-col ml-3">
+                                                        <p className="text-[16px] font-semibold">{item.productName}</p>
+                                                        <p className="font-medium text-[13px] text-gray-400">{item.weight} г</p>
+                                                        <p className="font-bold text-[16px]">{priceFormatter(item.price)} $</p>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    className={'px-4 py-3 rounded-xl bg-[#F2F2F3] flex items-center justify-between gap-3'}>
+                                                    <HiOutlineMinusSm onClick={() => minus(item.productId)}
+                                                                      className={'cursor-pointer'}/>
+                                                    {item.count}
+                                                    <HiMiniPlus onClick={() => plus(item.productId)}
+                                                                className={'cursor-pointer'}/>
                                                 </div>
                                             </div>
-                                            <button
-                                                className={'bg-[#F2F2F3] mt-2 py-3 rounded-2xl text-[16px] px-5 font-[400] hover:bg-gray-300'}
-                                            >
-                                                0
-                                            </button>
-                                        </div>
+                                        </>
                                     ))}
                                     <div className={'flex items-center justify-between mt-5 px-5'}>
                                         <p className={'text-[20px] font-medium'}>Итого</p>
-                                        <p className={'text-[18px] font-normal'}>{priceFormatter(basketPrice)} €</p>
+                                        <p className={'text-[20px] font-medium'}>{priceFormatter(Basket.totalPrice)} $</p>
                                     </div>
-
                                     <div className={'px-5 mt-[15px]'}>
-                                        <Button type={'primary'} className={'w-[100%] py-5 rounded-xl text-[16px]'}>Оформить
+                                        <Button onClick={() => showZakazModal()} type={'primary'}
+                                                className={'w-[100%] py-5 rounded-xl text-[16px]'}>Оформить
                                             заказ</Button>
                                     </div>
-
                                     <div className={'flex items-center justify-start gap-3 px-5 mt-[10px]'}>
                                         <img src="/bikeIcon.svg" alt=""/>
                                         <p>Бесплатная доставка</p>
                                     </div>
-                                </>
+                                </div>
                             ) : (
-                                <div>No Data</div>
+                                <div className="text-center text-gray-500">Корзина пуста</div>
                             )}
                         </div>
                     </Col>
-
                     <Col sm={16}>
-                        <Row gutter={16}>
-                            <Col sm={24} className={'text-4xl font-medium mb-5'}>{category?.name}</Col>
-                            {products ? (
-                                products.map((item) => (
-                                    <Col sm={8} key={item.id} className={'px-[20px] pb-[20px]'}>
-                                        <div className={'p-2 bg-white rounded-2xl'}>
-                                            <img
-                                                src={item.image.path}
-                                                alt=""
-                                                className={'w-[270px] h-[220px] bg-cover bg-center object-cover rounded-2xl'}
-                                            />
-                                            <p className={'text-[24px] mt-1 font-medium'}>{priceFormatter(item.price)} €</p>
-                                            <p className={'text-[16px]'}>{item.name}</p>
-                                            <p className={'mt-7 font-medium text-lg text-gray-400'}>{item.compound.weight} г</p>
-                                            <button type={'button'} onClick={() => showModal(item)}
-                                                    className={'w-[100%] bg-[#F2F2F3] mt-2 py-3 rounded-2xl text-[16px] font-[400] hover:bg-gray-300'}
-                                            >
-                                                Добавить
-                                            </button>
-                                        </div>
-                                    </Col>
-                                ))
+                        <Row>
+                            {category ? (
+                                <Col span={24} style={{fontFamily: "Roboto"}} className={'text-3xl font-medium mb-5'}>
+                                    {category.name}
+                                </Col>
                             ) : (
-                                <div>No Data</div>
+                                <></>
                             )}
+                            {products.map((item: IGetProductByCategory) => (
+                                <Col sm={8} key={item.id}
+                                     className={'px-[10px] pb-[20px] pt-[10px] bg-white rounded-xl shadow-lg'}>
+                                    <img src={item.imageDTO.path} alt={item.name}
+                                         className="w-[100%] h-[200px] bg-cover bg-center object-cover rounded-xl"/>
+                                    <div className="flex flex-col mt-2">
+                                        <p className="text-[24px] font-semibold">{priceFormatter(item.price)} $</p>
+                                        <p className="font-semibold text-[15px] mb-5">{item.name}</p>
+                                        <p className="text-[15px] font-semibold text-gray-500">{item.weight} г</p>
+                                        <Button type={'primary'} className="mt-2 w-full text-white"
+                                                onClick={() => showModal(item.id)}>
+                                            Добавить
+                                        </Button>
+                                    </div>
+                                </Col>
+                            ))}
                         </Row>
                     </Col>
                 </Row>
             </section>
-
             <Modal
                 open={isModalOpen}
                 onCancel={handleCancel}
                 width={'680px'}
-                footer={null}  // Removes default Ok and Cancel buttons
+                footer={null}
+                className="custom-modal w-[680px] min-h-[432px]"
             >
-                {selectedProduct && (
-                    <div className={'flex items-center justify-start gap-5'}>
-                        {/* Left section for the title, image, and button */}
-                        <div className={'w-[270px] flex flex-col justify-between'}>
-                            <p className={'text-[32px] font-medium'}>{selectedProduct.name}</p>
+                {Product.oneProduct && (
+                    <div className="flex justify-between items-start gap-8 pt-5">
+                        {/* Left section: Product name, image, and button */}
+                        <div className="w-[270px] h-[380px] flex flex-col items-center justify-between">
+                            <p className="text-[22px] font-semibold mb-4">{Product.oneProduct.name}</p>
                             <img
-                                src={selectedProduct.image.path}
-                                alt={selectedProduct.name}
-                                className={'w-[100%] h-[220px] object-cover rounded-[16px] mt-3 mb-5'}
+                                src={Product.oneProduct.image.path}
+                                alt={Product.oneProduct.name}
+                                className="w-full h-[220px] object-cover rounded-lg"
                             />
                             <Button
-                                type={"primary"}
-                                className={'w-full h-[48px] text-[18px] bg-[#FF7F27] hover:bg-[#FF7F27] border-none rounded-[12px]'}
+                                onClick={() => addOnBasket(Product.oneProduct ? Product.oneProduct.id : 0)}
+                                type="primary"
+                                className="w-full h-[50px] mt-4 bg-[#FF7F27] hover:bg-[#FF7F27] text-white rounded-lg text-lg"
                             >
                                 Добавить
                             </Button>
                         </div>
 
-                        {/* Right section for description, compound, and controls */}
-                        {/*<div className={'w-[340px] flex flex-col justify-between h-[100%]'}>*/}
-                        {/*    /!* Product description *!/*/}
-                        {/*    <p className={'font-[500] text-[16px] mb-2'}>{selectedProduct.description}</p>*/}
-                        {/*    <p className={'font-[500] text-[18px] mb-1'}>Состав:</p>*/}
-                        {/*    {selectedProduct.compound((item, index) => (*/}
-                        {/*        <p key={index} className={'font-[400] text-[16px] leading-[24px]'}>{item}</p>*/}
-                        {/*    ))}*/}
-
-                        {/*    /!* Weight and price section *!/*/}
-                        {/*    <p className={'text-gray-400 mt-3'}>{selectedProduct.weight} г,*/}
-                        {/*        ккал {selectedProduct.calories}</p>*/}
-
-                        {/*    /!* Counter and price *!/*/}
-                        {/*    <div className={'flex justify-between items-center mt-4'}>*/}
-                        {/*        <div className={'flex items-center gap-3 bg-[#F2F2F3] px-4 py-2 rounded-[12px]'}>*/}
-                        {/*            <CgMathMinus*/}
-                        {/*                className={'cursor-pointer'}*/}
-                        {/*                onClick={() => counter > 0 && setCounter(counter - 1)}*/}
-                        {/*            />*/}
-                        {/*            {counter}*/}
-                        {/*            <CgMathPlus*/}
-                        {/*                className={'cursor-pointer'}*/}
-                        {/*                onClick={() => setCounter(counter + 1)}*/}
-                        {/*            />*/}
-                        {/*        </div>*/}
-                        {/*        <p className={'font-bold text-[24px]'}>{selectedProduct.price} ₽</p>*/}
-                        {/*    </div>*/}
-                        {/*</div>*/}
+                        {/* Right section for description, ingredients, and price */}
+                        <div className="w-[340px] flex flex-col justify-between">
+                            <p className="font-medium text-[16px] mb-3">{Product.oneProduct.description}</p>
+                            <p className="font-semibold text-[18px] mb-2">Состав:</p>
+                            <ul className="list-none mb-6">
+                                <li className="text-[16px] text-gray-700 mb-1">{Product.oneProduct.compound.protein}</li>
+                                <li className="text-[16px] text-gray-700 mb-1">{Product.oneProduct.compound.fat}</li>
+                                <li className="text-[16px] text-gray-700 mb-1">{Product.oneProduct.compound.weight}</li>
+                            </ul>
+                            <p className="font-semibold text-[24px]">{priceFormatter(Product.oneProduct.price)} $</p>
+                        </div>
                     </div>
                 )}
             </Modal>
-
-
+            <Modal
+                open={isZakazMadalOpen}
+                onCancel={cancelZakazModal}
+                width={'680px'}
+                footer={null}
+                className="w-[680px]"
+                modalRender={(modal) => (
+                    <div style={{padding: 0}}>
+                        {modal}
+                    </div>
+                )}
+            >
+                <Row>
+                    <Col span={12} className={'h-[432px] bg-[#FFAB08] flex justify-center items-center'}>
+                        <img src="/zakazModal.svg" alt=""/>
+                    </Col>
+                    <Col span={12} className={'bg-[#F9F9F9] pt-[50px] px-[20px]'}>
+                        <p className={'text-3xl font-sans'}>Доставка</p>
+                        <Form
+                            name="adress"
+                            layout="horizontal"
+                            initialValues={{remember: true}}
+                            onFinish={onFinish}
+                            className={'mt-[20px]'}
+                        >
+                            <Form.Item<modalForm> name={'username'}>
+                                <Input type={'text'} placeholder={'Ваше имя'} className={'h-[40px] rounded-[12px]'}/>
+                            </Form.Item>
+                            <Form.Item<modalForm> name={'phoneNumber'}>
+                                <Input type={'number'} placeholder={'Телефон'} className={'h-[40px] rounded-[12px]'}/>
+                            </Form.Item>
+                        </Form>
+                    </Col>
+                </Row>
+            </Modal>
             <Footer/>
         </div>
     );

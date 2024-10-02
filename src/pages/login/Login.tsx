@@ -1,13 +1,15 @@
-import { Button, Form, FormProps, Input } from "antd";
-import {Link} from "react-router-dom";
+import {Button, Form, FormProps, Input} from "antd";
+import {Link, useNavigate} from "react-router-dom";
 import Auth from "@src/store/auth";
 import {ILogin} from "@src/interface/interface";
+import {observer} from "mobx-react-lite";
 
-export default function Login() {
+function Login() {
+    const navigate = useNavigate();
 
     const onFinish: FormProps<ILogin>['onFinish'] = async (values) => {
         console.log('Success:', values);
-        await Auth.login(values);
+        await Auth.login(values, navigate);
     };
 
     return (
@@ -38,24 +40,24 @@ export default function Login() {
                 <Form
                     name="basic"
                     layout="vertical"
-                    initialValues={{ remember: true }}
+                    initialValues={{remember: true}}
                     onFinish={onFinish}
                     autoComplete="off"
                 >
                     <Form.Item<ILogin>
                         label="Username"
                         name="username"
-                        rules={[{ required: true, message: 'Please enter your username!' }]}
+                        rules={[{required: true, message: 'Please enter your username!'}]}
                     >
-                        <Input className={'h-[40px]'} />
+                        <Input className={'h-[40px]'}/>
                     </Form.Item>
 
                     <Form.Item<ILogin>
                         label="Password"
                         name="password"
-                        rules={[{ required: true, message: 'Please enter your password!' }]}
+                        rules={[{required: true, message: 'Please enter your password!'}]}
                     >
-                        <Input.Password className={'h-[40px]'} />
+                        <Input.Password className={'h-[40px]'}/>
                     </Form.Item>
 
                     <Form.Item>
@@ -64,8 +66,12 @@ export default function Login() {
                         </Button>
                     </Form.Item>
                 </Form>
-                <p className={'text-center'}>You do not have account <Link to={'/register'} className={'text-white ml-1'}>Sign in</Link></p>
+                <p className={'text-center'}>You do not have account <Link to={'/register'}
+                                                                           className={'text-white ml-1'}>Sign in</Link>
+                </p>
             </div>
         </div>
     );
 }
+
+export default observer(Login);

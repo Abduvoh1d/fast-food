@@ -1,9 +1,11 @@
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // React Router navigatsiyasi uchun
 
+// Axios instance yaratish
 const api = axios.create({
     baseURL: 'http://51.20.10.41:8080/',
     timeout: 30000,
-    withCredentials: true, // cookie'larni birga yuborish uchun
+    withCredentials: true, // Cookie'larni birga yuborish uchun
 });
 
 // Access tokenni olish va har bir so'rovga qo'shish uchun interseptor
@@ -11,8 +13,9 @@ api.interceptors.request.use(
     (config) => {
         const accessToken = localStorage.getItem('accessToken'); // access tokenni localStorage'dan olish
         if (accessToken) {
-            config.headers['Authorization'] = `Bearer ${accessToken}`; // access tokenni headerga qo'shish
+            config.headers['Authorization'] = `Bearer ${accessToken}`;
         }
+
         return config;
     },
     (error) => {
@@ -34,8 +37,10 @@ api.interceptors.response.use(
             try {
                 // refresh token yordamida yangi access token olish
                 const refreshToken = localStorage.getItem('refreshToken');
+                const accessToken = localStorage.getItem('accessToken');
                 const response = await axios.post('http://51.20.10.41:8080/auth/refresh', {
-                    token: refreshToken,
+                    refreshToken: refreshToken,
+                    accessToken: accessToken,
                 });
 
                 // Yangi access tokenni saqlash
@@ -52,6 +57,15 @@ api.interceptors.response.use(
                 console.log('Refresh token ishlamadi');
                 return Promise.reject(err);
             }
+        }
+
+        // Agar 401 bo'lsa va refresh token ham ishlamasa, foydalanuvchini login sahifasiga yo'naltirish
+        if (error.response.status === 401) {
+            // Foydalanuvchini login sahifasiga yo'naltirish
+            const navigate = useNavigate();
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            navigate('/login');
         }
 
         return Promise.reject(error);
