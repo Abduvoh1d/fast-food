@@ -1,15 +1,15 @@
-import { Button, Form, FormProps, Input } from "antd";
-import {Link} from "react-router-dom";
+import {Button, Form, FormProps, Input} from "antd";
+import {Link, useNavigate} from "react-router-dom";
+import {IRegister} from "@src/interface/interface";
+import {observer} from "mobx-react-lite";
+import Auth from "@src/store/auth";
 
-export default function Register() {
-    type FieldType = {
-        userName: string;
-        password: string;
-        email: string;
-    };
+function Register() {
+    const navigate = useNavigate();
 
-    const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
-        console.log('Success:', values);
+    const onFinish: FormProps<IRegister>['onFinish'] = async (values: IRegister): Promise<void> => {
+        console.log(values)
+        Auth.register(values, navigate).then();
     };
 
     return (
@@ -44,15 +44,15 @@ export default function Register() {
                     onFinish={onFinish}
                     autoComplete="off"
                 >
-                    <Form.Item<FieldType>
+                    <Form.Item<IRegister>
                         label="Username"
-                        name="userName"
+                        name="username"
                         rules={[{required: true, message: 'Please enter your username!'}]}
                     >
                         <Input className={'h-[40px]'}/>
                     </Form.Item>
 
-                    <Form.Item<FieldType>
+                    <Form.Item<IRegister>
                         label="Email"
                         name="email"
                         rules={[{required: true, message: 'Please enter your username!'}]}
@@ -60,7 +60,7 @@ export default function Register() {
                         <Input type={'email'} className={'h-[40px]'}/>
                     </Form.Item>
 
-                    <Form.Item<FieldType>
+                    <Form.Item<IRegister>
                         label="Password"
                         name="password"
                         rules={[{required: true, message: 'Please enter your password!'}]}
@@ -74,8 +74,11 @@ export default function Register() {
                         </Button>
                     </Form.Item>
                 </Form>
-                <p className={'text-center'}>You have account <Link to={'/login'} className={'text-white ml-1'}>Login</Link></p>
+                <p className={'text-center'}>You have account <Link to={'/login'}
+                                                                    className={'text-white ml-1'}>Login</Link></p>
             </div>
         </div>
     );
 }
+
+export default observer(Register);

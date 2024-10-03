@@ -1,7 +1,6 @@
-import {ILogin, IUser} from "@src/interface/interface";
+import {ILogin, IRegister, IUser} from "@src/interface/interface";
 import {makeAutoObservable, runInAction} from "mobx";
 import api from "@api/api";
-import {message} from "antd";
 
 class auth {
     user: IUser | null = null;
@@ -12,45 +11,49 @@ class auth {
         makeAutoObservable(this);
     }
 
-    async login(data: ILogin, navigate: any) {
-        runInAction(() => {
-            this.isLoading = true;
-        });
+    loading(boolean: boolean): void {
+        runInAction((): void => {
+            this.isLoading = boolean
+        })
+    }
 
+    async auth(url: string, data: ILogin | IRegister, navigate: any): Promise<void> {
+        this.loading(true)
         try {
-            const response = await api.post('auth/login', data);
+            const response = await api.post(url, data);
+            console.log(response)
 
             runInAction(() => {
-                this.error = null;
                 this.user = response.data;
             });
 
             if (response.status === 200) {
                 localStorage.setItem('accessToken', (response.data.tokens.accessToken));
                 localStorage.setItem('refreshToken', (response.data.tokens.refreshToken));
-                message.success('Login successfully');
                 navigate('/')
             }
-        } catch (e: unknown) {
-            runInAction(() => {
-                if (e instanceof Error) {
-                    this.error = e.message;
-                } else {
-                    this.error = String(e);
-                }
+        } catch (e) {
+            runInAction((): void => {
+                this.error = `${e}`
             });
         } finally {
-            runInAction(() => {
-                this.isLoading = false;
-            });
+            this.loading(false)
         }
     }
 
-    checkLogin(navigate: any): void{
-        runInAction(() => {
+    async login(data: ILogin, navigate: any): Promise<void> {
+        this.auth('auth/login', data, navigate).then()
+    }
+
+    async register(data: IRegister, navigate: any): Promise<void> {
+        this.auth('auth/signup', data, navigate).then()
+    }
+
+    checkLogin(navigate: any): void {
+        runInAction((): void => {
             this.isLoading = true;
         })
-        const token = localStorage.getItem('accessToken');
+        const token: string | null = localStorage.getItem('accessToken');
 
         if (!token) {
             navigate('/login')

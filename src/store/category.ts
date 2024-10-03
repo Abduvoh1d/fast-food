@@ -1,32 +1,37 @@
-import { ICategory } from "@src/interface/interface";
-import { makeAutoObservable, runInAction } from "mobx";
+import {ICategory} from "@src/interface/interface";
+import {makeAutoObservable, runInAction} from "mobx";
 import api from "@api/api";
+import {AxiosResponse} from "axios";
 
 class Category {
     category: ICategory[] | null = null;
     error: string | null = null;
     isLoading: boolean = false;
-    isAuthenticated: boolean = false;
 
     constructor() {
         makeAutoObservable(this);
     }
 
-    async getCategories() {
-        this.isLoading = true;
+    loading(boolean: boolean): void {
+        runInAction((): void => {
+            this.isLoading = boolean;
+        })
+    }
+
+    async getCategories(): Promise<void> {
+        this.loading(true)
         try {
-            const response = await api.get("category/all");
-            runInAction(() => {
-                this.category = response.data;
+            const response: AxiosResponse<ICategory[]> = await api.get("category/all");
+            runInAction((): ICategory[] => {
+                return this.category = response.data;
             });
         } catch (error: any) {
             runInAction(() => {
                 this.error = error.message;
             });
+            this.loading(false)
         } finally {
-            runInAction(() => {
-                this.isLoading = false;
-            })
+            this.loading(false)
         }
     }
 }

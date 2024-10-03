@@ -24,27 +24,26 @@ type modalForm = {
 
 const Home = observer(() => {
     const [category, setCategory] = useState<ICategory | null>();
-    useEffect(() => {
-        const fetchData = async () => {
+    const categories: ICategory[] = toJS(Category.category) || [];
+    const navigate = useNavigate();
+    const products: IGetProductByCategory[] = toJS(Product.productByCategory) || [];
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [isOrderModalOpen, setIsOrderModalOpen] = useState<boolean>(false);
+
+    useEffect((): void => {
+        const fetchData = async (): Promise<void> => {
             await Product.getProducts(category?.id && category.id);
         };
         fetchData().then();
     }, [category?.id]);
 
-    const categories: ICategory[] = toJS(Category.category) || [];
-    const navigate = useNavigate();
-    const products: IGetProductByCategory[] = toJS(Product.productByCategory) || [];
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isZakazMadalOpen, setIsZakazMadalOpen] = useState(false);
-
-    useEffect(() => {
-        const fetchData = async () => {
+    useEffect((): void => {
+        const fetchData = async (): Promise<void> => {
             await Category.getCategories();
             await BasketStore.getBaket()
         };
         fetchData().then();
     }, []);
-
 
     if (Product.isLoading || Category.isLoading || Basket.isLoading) {
         return <Loading/>;
@@ -54,39 +53,36 @@ const Home = observer(() => {
         return <div className="text-red-500">Error: {Product.error || Category.error}</div>;
     }
 
-    const showModal = (id: number) => {
+    const showModal = (id: number): void => {
         Product.getOneProduct(id).then();
         setIsModalOpen(true);
     };
 
-    const handleCancel = () => {
+    const handleCancel = (): void => {
         setIsModalOpen(false);
         Product.oneProduct = null;
     };
 
-    const showZakazModal = () => {
-        setIsZakazMadalOpen(true);
+    const showOrderModal = (): void => {
+        setIsOrderModalOpen(true);
     };
 
-    const cancelZakazModal = () => {
-        setIsZakazMadalOpen(false);
+    const cancelOrderModal = (): void => {
+        setIsOrderModalOpen(false);
     };
 
 
     async function plus(productId: number): Promise<void> {
         await Basket.plus(productId)
-        await BasketStore.getBaket()
     }
 
     async function minus(productId: number): Promise<void> {
         await Basket.minus(productId)
-        await BasketStore.getBaket()
     }
 
     async function addOnBasket(id: number): Promise<void> {
         Auth.checkLogin(navigate)
         await Basket.addBasket(id)
-        await BasketStore.getBaket()
         setIsModalOpen(false);
     }
 
@@ -124,10 +120,9 @@ const Home = observer(() => {
                             <hr className="my-3"/>
                             {basket.basket && basket.basket.length > 0 ? (
                                 <div className="w-[100%]">
-                                    {Basket.basket?.map((item: IOrderItemDTO) => (
-                                        <>
-                                            <div key={item.id}
-                                                 className="p-4 rounded-2xl flex items-center justify-between">
+                                    {basket.basket.map((item: IOrderItemDTO) => (
+                                        <div key={item.id}>
+                                            <div className="p-4 rounded-2xl flex items-center justify-between">
                                                 <div className="flex items-center w-[250px]">
                                                     <img src={item.imagePath} alt={item.productName}
                                                          className="w-[70px] h-[70px] bg-cover bg-center object-cover rounded-xl"/>
@@ -138,26 +133,25 @@ const Home = observer(() => {
                                                     </div>
                                                 </div>
                                                 <div
-                                                    className={'px-4 py-3 rounded-xl bg-[#F2F2F3] flex items-center justify-between gap-3'}>
+                                                    className="px-4 py-3 rounded-xl bg-[#F2F2F3] flex items-center justify-between gap-3">
                                                     <HiOutlineMinusSm onClick={() => minus(item.productId)}
-                                                                      className={'cursor-pointer'}/>
+                                                                      className="cursor-pointer"/>
                                                     {item.count}
                                                     <HiMiniPlus onClick={() => plus(item.productId)}
-                                                                className={'cursor-pointer'}/>
+                                                                className="cursor-pointer"/>
                                                 </div>
                                             </div>
-                                        </>
+                                        </div>
                                     ))}
-                                    <div className={'flex items-center justify-between mt-5 px-5'}>
-                                        <p className={'text-[20px] font-medium'}>Итого</p>
-                                        <p className={'text-[20px] font-medium'}>{priceFormatter(Basket.totalPrice)} $</p>
+                                    <div className="flex items-center justify-between mt-5 px-5">
+                                        <p className="text-[20px] font-medium">Итого</p>
+                                        <p className="text-[20px] font-medium">{priceFormatter(basket.totalPrice)} $</p>
                                     </div>
-                                    <div className={'px-5 mt-[15px]'}>
-                                        <Button onClick={() => showZakazModal()} type={'primary'}
-                                                className={'w-[100%] py-5 rounded-xl text-[16px]'}>Оформить
-                                            заказ</Button>
+                                    <div className="px-5 mt-[15px]">
+                                        <Button onClick={() => showOrderModal()} type="primary"
+                                                className="w-[100%] py-5 rounded-xl text-[16px]">Оформить заказ</Button>
                                     </div>
-                                    <div className={'flex items-center justify-start gap-3 px-5 mt-[10px]'}>
+                                    <div className="flex items-center justify-start gap-3 px-5 mt-[10px]">
                                         <img src="/bikeIcon.svg" alt=""/>
                                         <p>Бесплатная доставка</p>
                                     </div>
@@ -201,10 +195,10 @@ const Home = observer(() => {
                 onCancel={handleCancel}
                 width={'680px'}
                 footer={null}
-                className="custom-modal w-[680px] min-h-[432px]"
+                className="custom-modal w-[680px] min-h-[432px] !pb-[20px]"
             >
                 {Product.oneProduct && (
-                    <div className="flex justify-between items-start gap-8 pt-5">
+                    <div className="flex justify-between items-start gap-8 p-5">
                         {/* Left section: Product name, image, and button */}
                         <div className="w-[270px] h-[380px] flex flex-col items-center justify-between">
                             <p className="text-[22px] font-semibold mb-4">{Product.oneProduct.name}</p>
@@ -237,19 +231,19 @@ const Home = observer(() => {
                 )}
             </Modal>
             <Modal
-                open={isZakazMadalOpen}
-                onCancel={cancelZakazModal}
-                width={'680px'}
+                open={isOrderModalOpen}
+                onCancel={cancelOrderModal}
+                width={'700px'}
+                height={'500px'}
                 footer={null}
-                className="w-[680px]"
                 modalRender={(modal) => (
                     <div style={{padding: 0}}>
                         {modal}
                     </div>
                 )}
             >
-                <Row>
-                    <Col span={12} className={'h-[432px] bg-[#FFAB08] flex justify-center items-center'}>
+                <Row className={'h-[500px]'}>
+                    <Col span={12} className={'h-[100%] bg-[#FFAB08] flex justify-center items-center'}>
                         <img src="/zakazModal.svg" alt=""/>
                     </Col>
                     <Col span={12} className={'bg-[#F9F9F9] pt-[50px] px-[20px]'}>

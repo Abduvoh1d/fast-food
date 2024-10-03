@@ -14,10 +14,14 @@ class BasketStore {
         makeAutoObservable(this);
     }
 
-    async getBaket(): Promise<void> {
-        runInAction(() => {
-            this.isLoading = true;
+    loading(boolean: boolean): void {
+        runInAction((): void => {
+            this.isLoading = boolean;
         })
+    }
+
+    async getBaket(): Promise<void> {
+        this.loading(true)
         try {
             const response: AxiosResponse<IBasket> = await api.get("category/orderItems");
             runInAction(() => {
@@ -27,78 +31,46 @@ class BasketStore {
                 this.error = null;
             });
         } catch (e) {
-            runInAction(() => {
+            runInAction((): void => {
                 this.error = `${e}`;
-                this.isLoading = false;
             });
+            this.loading(false)
         } finally {
-            runInAction(() => {
-                this.isLoading = false;
-            })
+            this.loading(false)
         }
     }
 
-    async addBasket(productId: number): Promise<void> {
-        runInAction(() => {
-            this.isLoading = true;
-        })
+    async fetchBasket(url: string): Promise<void> {
+        this.loading(true)
         try {
-            await api.post(`category/addOrderItem/?productId=${productId}`, {productId});
-            runInAction(() => {
+            const response: AxiosResponse<IBasket> = await api.post(url);
+            runInAction((): void => {
+                this.basket = response.data.orderItemDTOS;
+                this.totalProducts = response.data.count
+                this.totalPrice = response.data.price
                 this.error = null;
             });
         } catch (e) {
-            runInAction(() => {
+            runInAction((): void => {
                 this.error = `${e}`;
-                this.isLoading = false
             });
+            this.loading(false)
         } finally {
-            runInAction(() => {
-                this.isLoading = false;
-            })
+            this.loading(false)
         }
+    }
+
+
+    async addBasket(productId: number): Promise<void> {
+        this.fetchBasket(`category/addOrderItem/?productId=${productId}`).then();
     }
 
     async plus(productId: number): Promise<void> {
-        runInAction(() => {
-            this.isLoading = true;
-        })
-        try {
-            const response: AxiosResponse<IBasket> = await api.post(`category/addOrderItem/?productId=${productId}`);
-            runInAction(() => {
-                this.basket = response.data.orderItemDTOS;
-            });
-        } catch (e) {
-            runInAction(() => {
-                this.error = `${e}`;
-                this.isLoading = false
-            });
-        } finally {
-            runInAction(() => {
-                this.isLoading = false;
-            })
-        }
+        this.fetchBasket(`category/addOrderItem/?productId=${productId}`).then();
     }
 
     async minus(productId: number): Promise<void> {
-        runInAction(() => {
-            this.isLoading = true;
-        })
-        try {
-            const response: AxiosResponse<IBasket> = await api.post(`category/minusOrderItem/?productId=${productId}`);
-            console.log(response.data.orderItemDTOS)
-            runInAction(() => {
-                this.basket = response.data.orderItemDTOS;
-            });
-        } catch (e) {
-            runInAction(() => {
-                this.error = `${e}`;
-            });
-        } finally {
-            runInAction(() => {
-                this.isLoading = false;
-            })
-        }
+        this.fetchBasket(`category/minusOrderItem/?productId=${productId}`).then();
     }
 }
 

@@ -6,6 +6,9 @@
 
 body {
     font-family: "Roboto", sans-serif;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 
@@ -29,7 +32,7 @@ body {
     overflow: hidden;
 }
 
-.antd-modal{
+    .antd-modal {
     padding: 0 !important;
 }
 

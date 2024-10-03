@@ -7,7 +7,7 @@ import {observer} from "mobx-react-lite";
 function Login() {
     const navigate = useNavigate();
 
-    const onFinish: FormProps<ILogin>['onFinish'] = async (values) => {
+    const onFinish: FormProps<ILogin>['onFinish'] = async (values:ILogin) => {
         console.log('Success:', values);
         await Auth.login(values, navigate);
     };

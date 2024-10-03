@@ -1,7 +1,12 @@
 export interface ILogin {
-    status: boolean;
     username: string,
     password: string,
+}
+
+export interface IRegister {
+    username: string,
+    password: string,
+    email: string
 }
 
 export interface IUser {
@@ -73,4 +78,9 @@ export interface IBasket {
     orderItemDTOS: IOrderItemDTO[];
     count: number;
     price: number;
+}
+
+export interface Tokens {
+    accessToken: string
+    refreshToken: string
 }
