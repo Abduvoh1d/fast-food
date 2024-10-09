@@ -27,7 +27,7 @@ function Register() {
             }}
         >
             <div
-                className={'relative p-10 min-[300px]:w-[350px] sm:w-[450px] h-[500px] rounded-2xl bg-orange-300 bg-opacity-80'}
+                className={'relative p-10 min-[300px]:w-[350px] sm:w-[450px] h-[500px] rounded-2xl backdrop-blur-sm'}
             >
                 {/* Background Blur */}
                 <div

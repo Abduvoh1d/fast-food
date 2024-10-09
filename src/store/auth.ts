@@ -1,9 +1,9 @@
-import {ILogin, IRegister, IUser} from "@src/interface/interface";
+import {ILogin, IRegister, IRegisterDTO} from "@src/interface/interface";
 import {makeAutoObservable, runInAction} from "mobx";
 import api from "@api/api";
+import {AxiosResponse} from "axios";
 
 class auth {
-    user: IUser | null = null;
     error: string | null = null;
     isLoading: boolean = false;
 
@@ -18,35 +18,45 @@ class auth {
     }
 
     async auth(url: string, data: ILogin | IRegister, navigate: any): Promise<void> {
-        this.loading(true)
+        this.loading(true);
         try {
-            const response = await api.post(url, data);
-            console.log(response)
-
-            runInAction(() => {
-                this.user = response.data;
-            });
+            const response: AxiosResponse<IRegisterDTO> = await api.post(url, data);
 
             if (response.status === 200) {
-                localStorage.setItem('accessToken', (response.data.tokens.accessToken));
-                localStorage.setItem('refreshToken', (response.data.tokens.refreshToken));
-                navigate('/')
+                localStorage.setItem('accessToken', response.data.tokens.accessToken);
+                localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
+                localStorage.setItem('role', response.data.role);
+
+                const role = localStorage.getItem('role');
+
+                if (role === 'ADMIN') {
+                    navigate('/admin/users');
+                    window.location.reload()
+                } else if (role === 'USER') {
+                    navigate('/');
+                }
             }
         } catch (e) {
             runInAction((): void => {
-                this.error = `${e}`
+                this.error = `${e}`;
             });
         } finally {
-            this.loading(false)
+            this.loading(false);
         }
     }
 
     async login(data: ILogin, navigate: any): Promise<void> {
-        this.auth('auth/login', data, navigate).then()
+        await this.auth('auth/login', data, navigate)
     }
 
     async register(data: IRegister, navigate: any): Promise<void> {
-        this.auth('auth/signup', data, navigate).then()
+        await this.auth('auth/signup', data, navigate)
+    }
+
+    logOut(): void {
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('role');
     }
 
     checkLogin(navigate: any): void {

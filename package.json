@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -12,19 +12,24 @@
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
+    "@pbe/react-yandex-maps": "^1.2.5",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^22.5.5",
     "antd": "^5.20.6",
     "axios": "^1.7.7",
+    "i18next": "^23.15.2",
+    "i18next-browser-languagedetector": "^8.0.0",
+    "i18next-http-backend": "^2.6.2",
+    "lodash-es": "^4.17.21",
     "mobx": "^6.13.2",
     "mobx-react-lite": "^4.0.7",
     "query-string": "^9.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^15.0.2",
     "react-icons": "^5.3.0",
     "react-loading-indicators": "^1.0.0",
-    "react-router-dom": "^6.26.2",
-    "react-yandex-maps": "^4.6.0"
+    "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

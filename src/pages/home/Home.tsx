@@ -16,6 +16,8 @@ import Basket from "@src/store/basket";
 import basket from "@src/store/basket";
 import {useNavigate} from "react-router-dom";
 import Auth from "@src/store/auth";
+import {Map, Placemark, YMaps} from "@pbe/react-yandex-maps";
+import {useTranslation} from "react-i18next";
 
 type modalForm = {
     username: string;
@@ -23,18 +25,41 @@ type modalForm = {
 };
 
 const Home = observer(() => {
+    const {t} = useTranslation();
     const [category, setCategory] = useState<ICategory | null>();
     const categories: ICategory[] = toJS(Category.category) || [];
     const navigate = useNavigate();
     const products: IGetProductByCategory[] = toJS(Product.productByCategory) || [];
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [isOrderModalOpen, setIsOrderModalOpen] = useState<boolean>(false);
+    const [address, setAddress] = useState<string>("");
+    const [mapCoordinates, setMapCoordinates] = useState<{ lat: number; lng: number }>({
+        lat: 55.751244,
+        lng: 37.618423,
+    });
+    console.log(address)
+    const [markerCoordinates, setMarkerCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const reverseGeocode = (coords: { lat: number; lng: number }) => {
+        const dummyAddress = `Manzil: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
+        setAddress(dummyAddress);
+    };
+
+    const handleMapClick = (e: ymaps.IEvent) => {
+        const coords = e.get("coords") as number[];
+        const newCoords = {lat: coords[0], lng: coords[1]};
+        // Marker koordinatalarini o'zgartirish
+        setMarkerCoordinates(newCoords);
+        // Xarita markazini o'zgartirish
+        setMapCoordinates(newCoords);
+        reverseGeocode(newCoords);
+    };
+
 
     useEffect((): void => {
         const fetchData = async (): Promise<void> => {
             await Product.getProducts(category?.id && category.id);
         };
-        fetchData().then();
+        fetchData().then()
     }, [category?.id]);
 
     useEffect((): void => {
@@ -114,7 +139,7 @@ const Home = observer(() => {
                         <div style={{fontFamily: "Roboto"}}
                              className="rounded-2xl max-h-[500px] w-[100%] overflow-y-auto px-3 py-5 shadow-lg">
                             <div className="flex justify-between items-center">
-                                <p className="text-[24px] font-[600]">Корзина</p>
+                                <p className="text-[24px] font-[600]">{t("Basket")}</p>
                                 <p className="px-6 py-1 bg-[#F2F2F3] rounded-xl font-[400]">{basket.totalProducts}</p>
                             </div>
                             <hr className="my-3"/>
@@ -144,20 +169,20 @@ const Home = observer(() => {
                                         </div>
                                     ))}
                                     <div className="flex items-center justify-between mt-5 px-5">
-                                        <p className="text-[20px] font-medium">Итого</p>
+                                        <p className="text-[20px] font-medium">{t("Total")}</p>
                                         <p className="text-[20px] font-medium">{priceFormatter(basket.totalPrice)} $</p>
                                     </div>
                                     <div className="px-5 mt-[15px]">
                                         <Button onClick={() => showOrderModal()} type="primary"
-                                                className="w-[100%] py-5 rounded-xl text-[16px]">Оформить заказ</Button>
+                                                className="w-[100%] py-5 rounded-xl text-[16px]">{t("Place an order")}</Button>
                                     </div>
                                     <div className="flex items-center justify-start gap-3 px-5 mt-[10px]">
                                         <img src="/bikeIcon.svg" alt=""/>
-                                        <p>Бесплатная доставка</p>
+                                        <p>{t("Free shipping")}</p>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-center text-gray-500">Корзина пуста</div>
+                                <div className="text-center text-gray-500">{t("Cart is empty")}</div>
                             )}
                         </div>
                     </Col>
@@ -181,7 +206,7 @@ const Home = observer(() => {
                                         <p className="text-[15px] font-semibold text-gray-500">{item.weight} г</p>
                                         <Button type={'primary'} className="mt-2 w-full text-white"
                                                 onClick={() => showModal(item.id)}>
-                                            Добавить
+                                            {t("Add")}
                                         </Button>
                                     </div>
                                 </Col>
@@ -212,7 +237,7 @@ const Home = observer(() => {
                                 type="primary"
                                 className="w-full h-[50px] mt-4 bg-[#FF7F27] hover:bg-[#FF7F27] text-white rounded-lg text-lg"
                             >
-                                Добавить
+                                {t("Add")}
                             </Button>
                         </div>
 
@@ -246,8 +271,8 @@ const Home = observer(() => {
                     <Col span={12} className={'h-[100%] bg-[#FFAB08] flex justify-center items-center'}>
                         <img src="/zakazModal.svg" alt=""/>
                     </Col>
-                    <Col span={12} className={'bg-[#F9F9F9] pt-[50px] px-[20px]'}>
-                        <p className={'text-3xl font-sans'}>Доставка</p>
+                    <Col span={12} className={'bg-[#F9F9F9] p-[20px]'}>
+                        <p className={'text-3xl font-medium'}>{t("Delivery")}</p>
                         <Form
                             name="adress"
                             layout="horizontal"
@@ -256,12 +281,37 @@ const Home = observer(() => {
                             className={'mt-[20px]'}
                         >
                             <Form.Item<modalForm> name={'username'}>
-                                <Input type={'text'} placeholder={'Ваше имя'} className={'h-[40px] rounded-[12px]'}/>
+                                <Input type={'text'} placeholder={t("Your name")} className={'h-[40px] rounded-[12px]'}/>
                             </Form.Item>
                             <Form.Item<modalForm> name={'phoneNumber'}>
-                                <Input type={'number'} placeholder={'Телефон'} className={'h-[40px] rounded-[12px]'}/>
+                                <Input type={'number'} placeholder={t("Your phone")} className={'h-[40px] rounded-[12px]'}/>
                             </Form.Item>
                         </Form>
+
+                        <YMaps key={'a68b6671-21b5-4e63-b923-99ea6f8a74f5'}>
+                            <Map
+                                state={{
+                                    center: [mapCoordinates.lat, mapCoordinates.lng],
+                                    zoom: 14,
+                                }}
+                                width="100%"
+                                height="240px"
+                                onClick={handleMapClick}
+                            >
+                                {markerCoordinates && (
+                                    <Placemark
+                                        geometry={[markerCoordinates.lat, markerCoordinates.lng]}
+                                        options={{
+                                            iconLayout: "default#image",
+                                            iconImageHref: "path/to/icon.png", // Bu yerda ikonkangizning haqiqiy manzilini kiritishingiz kerak
+                                            iconImageSize: [30, 30],
+                                            iconImageOffset: [-15, -30],
+                                        }}
+                                    />
+                                )}
+                            </Map>
+                        </YMaps>
+                        <Button type={'primary'} className={'w-[100%] mt-3 '}>{t("Design")}</Button>
                     </Col>
                 </Row>
             </Modal>

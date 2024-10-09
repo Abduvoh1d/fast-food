@@ -3,22 +3,31 @@ export interface ILogin {
     password: string,
 }
 
+export interface IRegisterDTO {
+    tokens: {
+        accessToken: string,
+        refreshToken: string
+    },
+    role: string
+}
+
 export interface IRegister {
     username: string,
     password: string,
     email: string
 }
 
-export interface IUser {
-    id: number
+export interface IAllUsers {
+    id: number,
     username: string,
     email: string,
-    isAdmin: true,
-    address: IUserAdress
-    image: {
-        path: string
-    }
+    roles: {
+        roleName: string,
+        description: string
+    },
+    deleted: true
 }
+
 
 export interface IGetProductByCategory {
     id: number,
@@ -28,13 +37,6 @@ export interface IGetProductByCategory {
         path: string
     },
     weight: number
-}
-
-interface IUserAdress {
-    country: string,
-    street: string,
-    city: string,
-    number: string
 }
 
 export interface IProduct {
