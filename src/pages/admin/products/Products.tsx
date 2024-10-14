@@ -1,9 +1,22 @@
-import {observer} from "mobx-react-lite";
+import { observer } from "mobx-react-lite";
 
-function Products() {
+const Products = observer(function Products() {
     return (
-        <div>Products Page</div>
+        <div>
+            {/*<Table*/}
+            {/*    columns={columns}*/}
+            {/*    dataSource={*/}
+            {/*        isSuccess && data*/}
+            {/*            ? data.map((item) => ({ ...item, key: item.id }))*/}
+            {/*            : []*/}
+            {/*    }*/}
+            {/*    size="large"*/}
+            {/*    pagination={false}*/}
+            {/*    loading={isLoading}*/}
+            {/*    scroll={{ x: 1000, y: 500 }}*/}
+            {/*/>*/}
+        </div>
     );
-}
+});
 
-export default observer(Products);
+export default Products;

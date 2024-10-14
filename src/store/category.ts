@@ -1,7 +1,7 @@
-import {ICategory} from "@src/interface/interface";
-import {makeAutoObservable, runInAction} from "mobx";
+import { ICategory } from "@src/interface/interface";
+import { makeAutoObservable, runInAction } from "mobx";
 import api from "@api/api";
-import {AxiosResponse} from "axios";
+import { AxiosResponse } from "axios";
 
 class Category {
     category: ICategory[] | null = null;
@@ -12,28 +12,31 @@ class Category {
         makeAutoObservable(this);
     }
 
-    loading(boolean: boolean): void {
-        runInAction((): void => {
-            this.isLoading = boolean;
-        })
+    setLoading(state: boolean): void {
+        this.isLoading = state;
     }
 
-    async getCategories(): Promise<void> {
-        this.loading(true)
+    async getCategories(): Promise<ICategory[] | void> {
+        this.setLoading(true);
         try {
             const response: AxiosResponse<ICategory[]> = await api.get("category/all");
-            runInAction((): ICategory[] => {
-                return this.category = response.data;
+
+            runInAction(() => {
+                this.category = response.data;
+                this.error = null;
             });
+
+            return response.data;
         } catch (error: any) {
             runInAction(() => {
-                this.error = error.message;
+                this.error = error.message || "Ma'lumot olishda xatolik yuz berdi";
+                this.category = null;
             });
-            this.loading(false)
         } finally {
-            this.loading(false)
+            this.setLoading(false);
         }
     }
 }
 
-export default new Category();
+const CategoryStore = new Category();
+export default CategoryStore;

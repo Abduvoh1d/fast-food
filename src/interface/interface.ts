@@ -8,7 +8,7 @@ export interface IRegisterDTO {
         accessToken: string,
         refreshToken: string
     },
-    role: string
+    role: 'ADMIN' | 'USER'
 }
 
 export interface IRegister {

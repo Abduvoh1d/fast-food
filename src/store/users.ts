@@ -1,32 +1,28 @@
-import {IAllUsers} from "@src/interface/interface";
-import {makeAutoObservable, runInAction, toJS} from "mobx";
-import {AxiosResponse} from "axios";
+import { makeAutoObservable, runInAction } from "mobx";
+import { AxiosResponse } from "axios";
 import api from "@api/api";
-import {IUserTable} from "@pages/admin/user/User";
+import { IUserTable } from "@pages/admin/user/User";
 
 class Users {
-    users: IUserTable[] | null = null
-    user: IAllUsers | null = null
-    isLoading: boolean = false
-    error: string | null = null
+    users: IUserTable[] | null = null;
+    user: IUserTable | null = null;
+    isLoading = false;
+    error: string | null = null;
 
     constructor() {
-        makeAutoObservable(this)
+        // Ensure the store is observable
+        makeAutoObservable(this);
     }
 
-    Loading(boolean: boolean): void {
-        runInAction((): void => {
-            this.isLoading = boolean;
-        })
-    }
+    setLoading = (state: boolean) => {
+        this.isLoading = state;
+    };
 
-    Error(e: string | null = null): void {
-        runInAction((): void => {
-            this.error = e;
-        })
-    }
+    setError = (error: string | null) => {
+        this.error = error;
+    };
 
-    mapUser(data: IUserTable[]) {
+    mapUserData = (data: IUserTable[]): IUserTable[] => {
         return data.map((item) => ({
             id: item.id,
             username: item.username,
@@ -34,52 +30,87 @@ class Users {
             role: item.role,
             deleted: item.deleted,
         }));
-    }
+    };
 
-    async getAllUsers(): Promise<void> {
-        this.Loading(true)
-
+    getAllUsers = async (): Promise<IUserTable[] | void> => {
+        this.setLoading(true);
         try {
             const response = await api.get("admin/user/");
-            runInAction((): void => {
-                this.users = this.mapUser(response.data)
-            })
-            console.log(toJS(this.users))
-        } catch (e) {
-            this.Error(e as string);
+            const data = response.data;
+
+            runInAction(() => {
+                this.users = this.mapUserData(data);
+            });
+
+            return data;
+        } catch (error) {
+            runInAction(() => {
+                this.setError(error instanceof Error ? error.message : String(error));
+            });
         } finally {
-            this.Loading(false)
+            this.setLoading(false);
         }
-    }
+    };
 
-    async getUser(id: number): Promise<void> {
-        this.Loading(true)
 
+    getUser = async (id: number) => {
+        this.setLoading(true);
         try {
-            const response:AxiosResponse<IAllUsers> = await api.get(`admin/user/${id}`);
-            console.log(response)
-            runInAction((): void => {
+            const response: AxiosResponse<IUserTable> = await api.get(`admin/user/${id}`);
+            runInAction(() => {
                 this.user = response.data;
-            })
-        } catch (e) {
-            this.Error(e as string);
+            });
+        } catch (error) {
+            runInAction(() => {
+                this.setError(error instanceof Error ? error.message : String(error));
+            });
         } finally {
-            this.Loading(false)
+            this.setLoading(false);
         }
-    }
+    };
 
-    async addAdminRole(id: number): Promise<void> {
-        this.Loading(true)
+    addAdminRole = async (id: number) => {
+        this.setLoading(true);
         try {
-            const response = await api.put(`admin/user/addAdmin/${id}`);
-            console.log(response)
-        }catch (e){
-            this.Error(e as string);
-        }finally {
-            this.Loading(false)
+            const response = await api.post(`admin/user/addAdmin/${id}/`);
+            alert(response.data);
+        } catch (error) {
+            runInAction(() => {
+                this.setError(error instanceof Error ? error.message : String(error));
+            });
+        } finally {
+            this.setLoading(false);
         }
-    }
+    };
+
+    deleteUser = async (id: number) => {
+        this.setLoading(true);
+        try {
+            const response = await api.delete(`admin/user/${id}`);
+            alert(response.data);
+        } catch (error) {
+            runInAction(() => {
+                this.setError(error instanceof Error ? error.message : String(error));
+            });
+        } finally {
+            this.setLoading(false);
+        }
+    };
+
+    restone = async (id: number) => {
+        this.setLoading(true);
+        try {
+            const response = await api.put(`admin/user/restore/${id}`);
+            alert(response.data);
+        } catch (error) {
+            runInAction(() => {
+                this.setError(error instanceof Error ? error.message : String(error));
+            });
+        } finally {
+            this.setLoading(false);
+        }
+    };
 }
 
-const UserStore = new Users()
+const UserStore = new Users();
 export default UserStore;

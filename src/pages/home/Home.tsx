@@ -224,7 +224,6 @@ const Home = observer(() => {
             >
                 {Product.oneProduct && (
                     <div className="flex justify-between items-start gap-8 p-5">
-                        {/* Left section: Product name, image, and button */}
                         <div className="w-[270px] h-[380px] flex flex-col items-center justify-between">
                             <p className="text-[22px] font-semibold mb-4">{Product.oneProduct.name}</p>
                             <img

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'; // React Router navigatsiyasi uc
 
 // Axios instance yaratish
 const api = axios.create({
-    baseURL: 'http://51.20.10.41:8080/',
+    baseURL: 'https://13.60.185.242/',
     timeout: 30000,
     withCredentials: true, // Cookie'larni birga yuborish uchun
 });
@@ -11,7 +11,7 @@ const api = axios.create({
 // Access tokenni olish va har bir so'rovga qo'shish uchun interseptor
 api.interceptors.request.use(
     (config) => {
-        const accessToken = localStorage.getItem('accessToken'); // access tokenni localStorage'dan olish
+        const accessToken = localStorage.getItem('accessToken');
         if (accessToken) {
             config.headers['Authorization'] = `Bearer ${accessToken}`;
         }
@@ -38,7 +38,7 @@ api.interceptors.response.use(
                 // refresh token yordamida yangi access token olish
                 const refreshToken = localStorage.getItem('refreshToken');
                 const accessToken = localStorage.getItem('accessToken');
-                const response = await axios.post('http://51.20.10.41:8080/auth/refresh', {
+                const response = await axios.post('https://13.60.185.242/auth/refresh', {
                     refreshToken: refreshToken,
                     accessToken: accessToken,
                 });

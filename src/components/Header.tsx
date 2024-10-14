@@ -5,21 +5,21 @@ import Auth from "@src/store/auth";
 import {MdOutlineTranslate} from "react-icons/md";
 import {useTranslation} from "react-i18next";
 import i18n from "../i18n/i18n"
-import {useCallback} from "react";
+import {useEffect} from "react";
 import {useRouterPush} from "@hooks/use-router-push";
 import {useLocationParams} from "@hooks/use-location-params";
+import {observer} from "mobx-react-lite";
 
 function Header() {
     const {push} = useRouterPush();
     const {query} = useLocationParams();
-    const role = localStorage.getItem('role');
     const {t} = useTranslation();
-    const lang: string = (query.lang as string) || "en";
+    const lang: string = (query.lang as string);
+    const role = localStorage.getItem('role');
 
     const items: MenuProps['items'] = [
         {
-            // label: <Link to={'/profile'}>Profile</Link>,
-            label: <Link to={'/profile'}>{t('hello')}</Link>,
+            label: <Link to={'/profile'}>Profile</Link>,
             key: '0',
         },
         {
@@ -28,21 +28,19 @@ function Header() {
         }
     ];
 
-    const changeLang = useCallback((lang: string) => {
-        i18n.changeLanguage(lang).then();
-        push({
-            query: {
-                ...query,
-                lang
-            },
-        });
-    }, [push, query])
+    useEffect(() => {
+        if (lang) {
+            i18n.changeLanguage(query.lang as string).then();
+        }else {
+            i18n.changeLanguage('ru').then();
+        }
+    }, [lang, query.lang])
 
     const translateDropDownItems: MenuProps['items'] = [
         {
             key: '1',
             label: (
-                <div className="flex gap-2 " onClick={() => changeLang('uz')}>
+                <div className="flex gap-2 " onClick={() => push({query:{... query, lang: 'uz'}})}>
                     <img
                         src="https://cdn.commeta.uz/static/review/static/front/svg/flag/uz.svg"
                         alt=""
@@ -55,7 +53,7 @@ function Header() {
         {
             key: '2',
             label: (
-                <div className="flex gap-2" onClick={() => changeLang('ru')}>
+                <div className="flex gap-2" onClick={() => push({query:{... query, lang: 'ru'}})}>
                     <img
                         src="https://upload.wikimedia.org/wikipedia/en/thumb/f/f3/Flag_of_Russia.svg/1200px-Flag_of_Russia.svg.png"
                         alt=""
@@ -68,7 +66,7 @@ function Header() {
         {
             key: '3',
             label: (
-                <div className="flex gap-2" onClick={() => changeLang('en')}>
+                <div className="flex gap-2" onClick={() => push({query:{... query, lang: 'en'}})}>
                     <img
                         src="https://cdn.commeta.uz/static/review/static/front/svg/flag/en.svg"
                         alt=""
@@ -121,7 +119,7 @@ function Header() {
                                 size="large"
                                 className="bg-white hover:!bg-opacity-50  hover:scale-105 hover:!text-black hover:!bg-white !bg-opacity-25 border-none h-[40px] flex items-center justify-center"
                             >
-                                <MdOutlineTranslate className={'size-5'}/><p className={'text-xl'}>{lang}</p>
+                                <MdOutlineTranslate className={'size-5'}/><p className={'text-xl'}>{lang ?? 'ru'}</p>
                             </Button>
                         </Dropdown>
                     </div>
@@ -147,4 +145,4 @@ function Header() {
     );
 }
 
-export default Header;
+export default observer(Header);
