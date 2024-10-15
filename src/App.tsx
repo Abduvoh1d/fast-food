@@ -9,9 +9,17 @@ import Products from "@pages/admin/products/Products";
 import Category from "@pages/admin/category/Category";
 import {observer} from "mobx-react-lite";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import Restaurants from "@pages/admin/restaurants/Restaurants";
+import {ToastConfig} from "@src/components/toastify/Toastify";
 
 function App() {
-    const queryClient = new QueryClient();
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: {
+                retry: 1
+            },
+        },
+    });
     const role = localStorage.getItem('role');
     return (
         <ConfigProvider
@@ -38,11 +46,13 @@ function App() {
                                 <Route path={'users'} element={<User/>}/>
                                 <Route path={'products'} element={<Products/>}/>
                                 <Route path={'category'} element={<Category/>}/>
+                                <Route path={'restaurants'} element={<Restaurants/>}/>
                             </Route>
                         ) : (
                             <Route path={'*'} element={<Navigate to={'/login'}/>}/>
                         )}
                     </Routes>
+                    <ToastConfig />
                 </BrowserRouter>
             </QueryClientProvider>
         </ConfigProvider>

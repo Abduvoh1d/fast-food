@@ -1,12 +1,13 @@
 import { ReactNode, useState } from "react";
 import {Link, Outlet, useLocation} from "react-router-dom";
 import { FaUsers } from "react-icons/fa";
-import { PiHandWithdraw } from "react-icons/pi";
-import { IoFileTrayFull } from "react-icons/io5";
+import {PiBasketDuotone} from "react-icons/pi";
 import {Layout, Menu} from "antd";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import {MdLogout} from "react-icons/md";
 import Auth from "@src/store/auth";
+import {BiCategory} from "react-icons/bi";
+import {IoRestaurantOutline} from "react-icons/io5";
 
 const { Sider } = Layout;
 
@@ -31,14 +32,20 @@ function MyLayout() {
         {
             id: 2,
             title: "Products",
-            icon: <PiHandWithdraw />,
+            icon: <PiBasketDuotone />,
             link: '/admin/products'
         },
         {
             id: 3,
             title: "Category",
-            icon: <IoFileTrayFull />,
+            icon: <BiCategory />,
             link: '/admin/category'
+        },
+        {
+            id: 4,
+            title: "Restaurants",
+            icon: <IoRestaurantOutline />,
+            link: '/admin/restaurants'
         }
     ];
 

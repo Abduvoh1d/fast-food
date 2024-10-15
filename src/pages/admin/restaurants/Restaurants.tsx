@@ -1,7 +1,6 @@
-import { observer } from "mobx-react-lite";
 import {Table} from "antd";
 
-const Products = observer(function Products() {
+function Restaurants() {
     const columns = [
         {
             title: "Name",
@@ -9,6 +8,7 @@ const Products = observer(function Products() {
             key: "name",
         }
     ]
+
     return (
         <div>
             <Table
@@ -21,6 +21,6 @@ const Products = observer(function Products() {
             />
         </div>
     );
-});
+}
 
-export default Products;
+export default Restaurants;

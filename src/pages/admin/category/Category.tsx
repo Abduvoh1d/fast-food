@@ -79,11 +79,12 @@ function Category() {
             label: 'Picture',
             name: 'path',
             type: 'upload',
+            fileList: 'picture-card',
             required: true,
             message: 'Upload category picture!',
             span: 24
         }
-    ];
+    ] as IForm[];
 
     return (
         <div>
