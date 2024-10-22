@@ -1,7 +1,7 @@
-import { ICategory } from "@src/interface/interface";
-import { makeAutoObservable, runInAction } from "mobx";
+import {ICategory} from "@src/interface/interface";
+import {makeAutoObservable, runInAction} from "mobx";
 import api from "@api/api";
-import { AxiosResponse } from "axios";
+import {AxiosResponse} from "axios";
 
 class Category {
     category: ICategory[] | null = null;
@@ -20,21 +20,35 @@ class Category {
         this.setLoading(true);
         try {
             const response: AxiosResponse<ICategory[]> = await api.get("category/all");
-
             runInAction(() => {
                 this.category = response.data;
                 this.error = null;
             });
-
             return response.data;
-        } catch (error: any) {
+        } catch (error) {
             runInAction(() => {
-                this.error = error.message || "Ma'lumot olishda xatolik yuz berdi";
+                this.error = (error as Error).message || "Ma'lumot olishda xatolik yuz berdi";
                 this.category = null;
             });
         } finally {
             this.setLoading(false);
         }
+    }
+
+    async updateCategory(id: number, data: ICategory): Promise<AxiosResponse<ICategory[]>> {
+        return await api.put(`admin/category/${id}`, data);
+    }
+
+    async deleteCategory(id: number): Promise<AxiosResponse<ICategory[]>> {
+        return await api.delete(`admin/category/${id}`);
+    }
+
+    async restoreCategory(id: number): Promise<AxiosResponse<ICategory[]>> {
+        return await api.delete(`admin/category/restore/${id}`);
+    }
+
+    async addProducts(name: string, data: ICategory): Promise<AxiosResponse<ICategory[]>> {
+        return await api.post(`admin/category/?name=${name}`, data);
     }
 }
 

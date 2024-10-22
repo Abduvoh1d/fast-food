@@ -48,7 +48,7 @@ export interface IProduct {
         path: string
     },
     compound: IProductCompound
-    deleted: true
+    deleted: boolean
 }
 
 
@@ -63,7 +63,8 @@ interface IProductCompound {
 export interface ICategory {
     id: number,
     path: string,
-    name: string
+    name: string,
+    deleted: boolean
 }
 
 export interface IOrderItemDTO {
@@ -85,4 +86,17 @@ export interface IBasket {
 export interface Tokens {
     accessToken: string
     refreshToken: string
+}
+
+export interface IRestorant {
+    id: number,
+    name: string,
+    contactNumber: string,
+    addressDTO: {
+        country: string,
+        street: string,
+        city: string,
+        number: string
+    },
+    deleted: true
 }

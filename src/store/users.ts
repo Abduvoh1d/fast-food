@@ -6,8 +6,6 @@ import {IUserTable} from "@pages/admin/user/User";
 class Users {
     users: IUserTable[] | null = null;
     user: IUserTable | null = null;
-    isLoading = false;
-    error: string | null = null;
 
     constructor() {
         makeAutoObservable(this);
@@ -25,18 +23,15 @@ class Users {
     };
 
     addAdminRole = async (id: number) => {
-        const response = await api.post(`admin/user/addAdmin/${id}/`);
-        alert(response.data)
+        return  await api.post(`admin/user/addAdmin/${id}/`);
     };
 
     deleteUser = async (id: number) => {
-        const response = await api.delete(`admin/user/${id}`);
-        alert(response.data);
+        return  await api.delete(`admin/user/${id}`);;
     };
 
     restoneUser = async (id: number) => {
-        const response = await api.put(`admin/user/restore/${id}`);
-        alert(response.data);
+        return await api.put(`admin/user/restore/${id}`);
     };
 }
 

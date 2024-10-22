@@ -11,15 +11,16 @@ import {observer} from "mobx-react-lite";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import Restaurants from "@pages/admin/restaurants/Restaurants";
 import {ToastConfig} from "@src/components/toastify/Toastify";
-
-function App() {
-    const queryClient = new QueryClient({
-        defaultOptions: {
-            queries: {
-                retry: 1
-            },
+import {ReactQueryDevtools} from "@tanstack/react-query-devtools";
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: 1
         },
-    });
+    },
+});
+function App() {
+
     const role = localStorage.getItem('role');
     return (
         <ConfigProvider
@@ -30,6 +31,7 @@ function App() {
             }}
         >
             <QueryClientProvider client={queryClient}>
+                <ReactQueryDevtools initialIsOpen={false} />
                 <BrowserRouter>
                     <Routes>
                         <Route path="/" element={<Home/>}/>

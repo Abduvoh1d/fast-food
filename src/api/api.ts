@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'; // React Router navigatsiyasi uc
 
 // Axios instance yaratish
 const api = axios.create({
-    baseURL: 'http://51.20.10.41:8080/',
+    baseURL: 'http://13.60.199.254:8080/',
     timeout: 30000,
     withCredentials: true, // Cookie'larni birga yuborish uchun
 });
@@ -38,7 +38,7 @@ api.interceptors.response.use(
                 // refresh token yordamida yangi access token olish
                 const refreshToken = localStorage.getItem('refreshToken');
                 const accessToken = localStorage.getItem('accessToken');
-                const response = await axios.post('http://51.20.10.41:8080/auth/refresh', {
+                const response = await axios.post('http://13.60.199.254:8080/auth/refresh', {
                     refreshToken: refreshToken,
                     accessToken: accessToken,
                 });
@@ -53,9 +53,10 @@ api.interceptors.response.use(
 
                 return api(originalRequest);
             } catch (err) {
-                // Agar refresh token ham ishlamasa, foydalanuvchini tizimdan chiqaring yoki boshqa amallarni bajaring
-                console.log('Refresh token ishlamadi');
-                return Promise.reject(err);
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('role');
+                window.location.href = '/login';
             }
         }
 

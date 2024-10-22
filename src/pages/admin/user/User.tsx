@@ -1,12 +1,12 @@
-import { Table, TableProps } from "antd";
-import { HiOutlinePencil } from "react-icons/hi";
-import { IoCloseSharp } from "react-icons/io5";
-import { MdOutlineDone } from "react-icons/md";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {Table, TableProps} from "antd";
+import {IoCloseSharp} from "react-icons/io5";
+import {MdOutlineDone} from "react-icons/md";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import UserStore from "@src/store/users";
-import { observer } from "mobx-react-lite";
+import {observer} from "mobx-react-lite";
 import Exel from "@src/components/exel";
-import { ErrorToast, SuccessToast } from "@src/components/toastify/Toastify";
+import {ErrorToast, SuccessToast} from "@src/components/toastify/Toastify";
+import {FaUserTie} from "react-icons/fa6";
 
 export interface IUserTable {
     id: number;
@@ -16,38 +16,39 @@ export interface IUserTable {
     deleted: boolean;
 }
 
-function User() {
+const User = observer(() => {
     const queryClient = useQueryClient();
 
-    const { data, isFetching, isError, error, isSuccess } = useQuery({
+
+    const {data, isFetching, isError, error, isSuccess} = useQuery({
         queryKey: ['Users'],
         queryFn: () => UserStore.getAllUsers(),
     });
 
-    const { mutate: addAdminMutation } = useMutation(UserStore.addAdminRole, {
+    const {mutate: addAdminMutation} = useMutation(UserStore.addAdminRole, {
         onSuccess: () => {
-            SuccessToast('User added to admin');
-            queryClient.invalidateQueries(['Users']);
+            SuccessToast('User add to admin');
+            queryClient.invalidateQueries(['Users']).then();
         },
         onError: () => {
             ErrorToast('Something went wrong');
         }
     });
 
-    const { mutate: deleteUserMutation } = useMutation(UserStore.deleteUser, {
+    const {mutate: deleteUserMutation} = useMutation(UserStore.deleteUser, {
         onSuccess: () => {
             SuccessToast('User successfully deleted');
-            queryClient.invalidateQueries(['Users']);
+            queryClient.invalidateQueries(['Users']).then();
         },
         onError: () => {
             ErrorToast('Something went wrong');
         }
     });
 
-    const { mutate: restoreUserMutation } = useMutation(UserStore.restoreUser, {
+    const {mutate: restoreUserMutation} = useMutation(UserStore.restoneUser, {
         onSuccess: () => {
-            SuccessToast('User restored');
-            queryClient.invalidateQueries(['Users']);
+            SuccessToast('User successfully restored');
+            queryClient.invalidateQueries(['Users']).then();
         },
         onError: () => {
             ErrorToast('Something went wrong');
@@ -103,7 +104,7 @@ function User() {
                         className="p-3 border-2 border-gray-500 text-gray-500 rounded-full"
                         onClick={() => addAdminMutation(item.id)}
                     >
-                        <HiOutlinePencil />
+                        <FaUserTie/>
                     </button>
 
                     {item.deleted ? (
@@ -111,14 +112,14 @@ function User() {
                             className="p-3 border-2 rounded-full border-green-500 text-green-500"
                             onClick={() => restoreUserMutation(item.id)}
                         >
-                            <MdOutlineDone className="size-[18px]" />
+                            <MdOutlineDone className="size-[18px]"/>
                         </button>
                     ) : (
                         <button
                             className="p-3 border-2 rounded-full border-red-500 text-red-500"
                             onClick={() => deleteUserMutation(item.id)}
                         >
-                            <IoCloseSharp className="size-[18px]" />
+                            <IoCloseSharp className="size-[18px]"/>
                         </button>
                     )}
                 </div>
@@ -128,18 +129,21 @@ function User() {
 
     return (
         <div>
-            <Exel disable={isFetching} />
+            <div className={'flex justify-between items-center mb-3'}>
+                <p className={'text-2xl font-bold'}>Users</p>
+                <Exel name={'UsersTable'}/>
+            </div>
             <Table<IUserTable>
-                id="UserTable"
+                id={'UsersTable'}
                 columns={columns}
-                dataSource={isSuccess && data ? data.map((item) => ({ ...item, key: item.id })) : []}
+                dataSource={isSuccess && data ? data.map((item) => ({...item, key: item.id})) : []}
                 size="large"
                 pagination={false}
                 loading={isFetching}
-                scroll={{ x: 1000, y: 500 }}
+                scroll={{x: 1000, y: 500}}
             />
         </div>
     );
-}
+})
 
-export default observer(User);
+export default User;

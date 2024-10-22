@@ -2,6 +2,7 @@ import {ILogin, IRegister, IRegisterDTO} from "@src/interface/interface";
 import {makeAutoObservable, runInAction} from "mobx";
 import api from "@api/api";
 import {AxiosResponse} from "axios";
+import {ErrorToast, SuccessToast} from "@src/components/toastify/Toastify";
 
 class auth {
     error: string | null = null;
@@ -35,10 +36,13 @@ class auth {
                 } else if (role === 'USER') {
                     navigate('/');
                 }
+
+                SuccessToast("Xush kelibsiz")
             }
         } catch (e) {
             runInAction((): void => {
                 this.error = `${e}`;
+                ErrorToast("Xatolik yuz berdi")
             });
         } finally {
             this.loading(false);

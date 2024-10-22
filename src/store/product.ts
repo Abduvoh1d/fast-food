@@ -13,6 +13,10 @@ class Product {
         makeAutoObservable(this);
     }
 
+    getAllProducts = async (): Promise<AxiosResponse<IProduct[]>> => {
+        return await api.get("admin/product/all");
+    }
+
     async getProducts(categoryId: number = 1): Promise<void> {
         this.isLoading = true;
         try {
@@ -55,7 +59,13 @@ class Product {
         }
     }
 
+    deleteProduct = async (productId: number): Promise<void> => {
+        await api.delete(`/admin/produc/${productId}`);
+    }
 
+    restoreProduct = async (productId: number): Promise<void> => {
+        await api.delete(`/admin/product/restore/${productId}`);
+    }
 }
 
 export default new Product();

@@ -26,10 +26,10 @@ type modalForm = {
 
 const Home = observer(() => {
     const {t} = useTranslation();
-    const [category, setCategory] = useState<ICategory | null>();
     const categories: ICategory[] = toJS(Category.category) || [];
     const navigate = useNavigate();
     const products: IGetProductByCategory[] = toJS(Product.productByCategory) || [];
+    const [category, setCategory] = useState<ICategory | null>();
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [isOrderModalOpen, setIsOrderModalOpen] = useState<boolean>(false);
     const [address, setAddress] = useState<string>("");
