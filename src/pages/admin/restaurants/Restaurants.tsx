@@ -248,6 +248,7 @@ function Restaurants() {
                 columns={columns}
                 dataSource={isSuccess ? Restaurants.data.map((item) => ({...item, key: item.addressDTO.number})) : []}
                 size="large"
+                className={'m-0'}
                 pagination={false}
                 loading={isFetching}
                 scroll={{x: 1200, y: 500}}
