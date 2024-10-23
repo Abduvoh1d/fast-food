@@ -13,13 +13,16 @@ class Category {
     }
 
     setLoading(state: boolean): void {
-        this.isLoading = state;
+        runInAction(() => {
+            this.isLoading = state;
+        });
     }
 
     async getCategories(): Promise<ICategory[] | void> {
         this.setLoading(true);
         try {
             const response: AxiosResponse<ICategory[]> = await api.get("category/all");
+            console.log(response)
             runInAction(() => {
                 this.category = response.data;
                 this.error = null;

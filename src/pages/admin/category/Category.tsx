@@ -11,8 +11,6 @@ import {MdOutlineDone} from "react-icons/md";
 import {IoCloseSharp} from "react-icons/io5";
 import {useRouterPush} from "@hooks/use-router-push";
 import {useLocationParams} from "@hooks/use-location-params";
-import {get} from "lodash";
-import api from "@api/api";
 import {useCallback} from "react";
 
 const Category = observer(() => {
@@ -43,18 +41,19 @@ const Category = observer(() => {
     };
 
     const onFinish = useCallback((values: Record<string, any>) => {
-        // Yuklangan fayllar ro‘yxati va documentId larni olish
-        console.log(values);
-
-        const imageId = get(values, "image[0].id", undefined);
-
-        const formData = {
-            ...values,
-            image: imageId, // Post qilayotganda faqat documentId larni yuborish
-        };
-
-        update(values.name , values.description , formData);
-
+        console.log(values)
+    //     // Yuklangan fayllar ro‘yxati va documentId larni olish
+    //     console.log(values);
+    //
+    //     const imageId = get(values, "image[0].id", undefined);
+    //
+    //     const formData = {
+    //         ...values,
+    //         image: imageId, // Post qilayotganda faqat documentId larni yuborish
+    //     };
+    //
+    //     update(values.name , values.description , formData);
+    //
     }, []);
 
 
@@ -86,20 +85,20 @@ const Category = observer(() => {
         }
     })
 
-    const {mutate: update} = useMutation(
-        ({name , description , data}: {name: string , description: string , data: any}) => {
-            return api.post(`/admin/category/?name=${name}&description=${description}`, {data});
-        },
-        {
-            onSuccess: () => {
-                queryClient.invalidateQueries(["products"]);
-                SuccessToast("All ok!");
-            },
-            onError: () => {
-                ErrorToast("Error!");
-            },
-        }
-    );
+    // const {mutate: update} = useMutation(
+    //     ({name , description , data}: {name: string , description: string , data: any}) => {
+    //         return api.post(`/admin/category/?name=${name}&description=${description}`, {data});
+    //     },
+    //     {
+    //         onSuccess: () => {
+    //             queryClient.invalidateQueries(["products"]);
+    //             SuccessToast("All ok!");
+    //         },
+    //         onError: () => {
+    //             ErrorToast("Error!");
+    //         },
+    //     }
+    // );
 
     const {mutate: restoreCategoryMutation, error: restoreError} = useMutation({
         mutationFn: (id: number) => CategoryStore.restoreCategory(id),
