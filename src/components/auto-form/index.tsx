@@ -1,8 +1,7 @@
 import {
     Checkbox, CheckboxOptionType, Col, ColorPicker, DatePicker, Form, FormInstance, Input,
-    InputNumber, Radio, Row, Select, SelectProps, TimePicker
+    InputNumber, Radio, Row, Select, SelectProps, TimePicker, Upload
 } from "antd";
-import UploadComponent from "@src/components/Upload";
 
 export interface IForm {
     xs?: number;
@@ -91,7 +90,7 @@ export function AutoForm({
             case 'radio':
                 return <Radio.Group options={props.radioOptions} {...commonProps} />;
             case 'upload':
-                return <UploadComponent />;
+                return <Upload multiple={false} maxCount={1}/>;
             case 'url':
                 return <Input type="url" {...commonProps} {...length} />;
             case 'select':

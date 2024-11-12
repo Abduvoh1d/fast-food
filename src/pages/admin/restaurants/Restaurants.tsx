@@ -227,9 +227,21 @@ function Restaurants() {
             xs: 24,
             md: 12,
             className: 'w-full',
-        }
+        },
+        {
+            label: 'Select',
+            name: 'select',
+            type: 'select',
+            option: [
+                {
+                    label: 'Yes',
+                    value: 'dsa',
+                },
+            ],
+            xs: 24,
+            md: 12,
+        },
     ];
-
     return (
         <div>
             <div className="flex justify-between items-center gap-3 mb-3">
